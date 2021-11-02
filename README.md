@@ -1,2 +1,2 @@
-# cashandcarry
-cash and carry strategy on ftx
+# streamlit-project
+my first streamlet project
