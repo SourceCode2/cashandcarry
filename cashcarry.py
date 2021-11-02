@@ -9,15 +9,36 @@ import time
 import hmac
 from requests import Request, Session
 import pandas as pd
+from requests.sessions import get_environ_proxies
 
 def spread(futures, spot):
-
     price_futures = float(futures['ask'])
     price_spot = float(spot['bid'])
     gain = (price_futures/price_spot-1)*100
     
     return gain
 
+def apr(gain, id):
+    timecode = id[-4:]
+    oggi = datetime.date.today()
+    
+    if timecode[0] == "0":
+        mese = int(timecode[1])
+    else:
+        mese = int(timecode[0:2])
+
+    giorno = int(timecode[2:4])
+
+    if oggi.month > mese:
+        anno = oggi.year + 1
+    else:
+        anno = oggi.year
+
+    scadenza = datetime.date(anno,mese,giorno)
+    
+    differenza = scadenza-oggi
+
+    return gain/differenza.days*365
 
 def main(capitale):
     dataid = list()
@@ -37,13 +58,8 @@ def main(capitale):
                     if x['id'] == f"{i['base']}/USD":
                         gain = spread(i['info'], x['info'])
                         if gain > 2:
-                            if "1231" in i['id']:
-                                dataid.append(f"({i['id']})/({x['id']})")
-                                totale.append((round(gain, 2), gain/100*capitale ,round(gain/61*365, 2), gain/61*365/100*capitale))
-
-                            elif "0325" in i['id']:
-                                dataid.append(f"({i['id']})/({x['id']})")
-                                totale.append((round(gain, 2), gain/100*capitale ,round(gain/61*365, 2), gain/174*365/100*capitale))
+                            dataid.append(f"({i['id']})/({x['id']})")
+                            totale.append((round(gain, 4), gain/100*capitale , round(apr(gain, i['id']),4), apr(gain, i['id'])/100*capitale))
 
     df = pd.DataFrame(totale, index=dataid, columns=("profitto alla scadenza %", "profitto alla scadenza €", "guadagno annualizzato %(APR)", "guadagno annualizzato €"))
     df.sort_values(by=['guadagno annualizzato %(APR)'], inplace=True, ascending=False)
