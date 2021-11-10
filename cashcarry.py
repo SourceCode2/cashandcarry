@@ -56,7 +56,7 @@ def main(capitale):
             if "MOVE" not in i['id']:
                 for x in market2:
                     if x['id'] == f"{i['base']}/USD":
-                        gain = spread(i['info'], x['info'])
+                        gain = spread(i['info'], x['info'])-0.17
                         if gain > 2:
                             dataid.append(f"({i['id']})/({x['id']})")
                             totale.append((round(gain, 4), gain/100*capitale , round(apr(gain, i['id']),4), apr(gain, i['id'])/100*capitale))
